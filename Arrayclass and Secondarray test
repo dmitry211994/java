@@ -1,0 +1,43 @@
+package java_project_21_02_2024;
+
+public class class_21_02_2024 {
+
+	public static void main(String[] args) {
+		System.out.println("работает");
+		
+		Arrays_class testarray1 = new Arrays_class();
+		Arrays_class testarray2 = new Arrays_class(6);
+		
+		testarray2.fill(1, 10);
+		testarray1.fill(1, 10);
+		
+		System.out.println("testaray1");
+		testarray1.show();
+		System.out.println("testaray2");
+		testarray2.show();
+		System.out.println("\n");
+		
+		System.out.println("testaray2 max min sum");
+		System.out.println(testarray2.maximum());
+		System.out.println(testarray2.minimum());
+		System.out.println(testarray2.sum());
+		
+		System.out.println("testaray2 sorted not reversed");
+		testarray2.sorta(false);
+		testarray2.show();
+		
+		System.out.println("sorted reversed");
+		testarray2.sorta(true);
+		testarray2.show();
+		
+		System.out.println("testaray3");
+		Secondclass testarray3 = new Secondclass(4);
+		testarray3.fill(10, 17);
+		testarray3.show();
+		System.out.println("element under index 2");
+		System.out.println(testarray3.element(2));
+		System.out.println("element under index 88");
+		System.out.println(testarray3.element(88));
+		
+	}
+}
