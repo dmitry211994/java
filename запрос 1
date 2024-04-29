@@ -1,0 +1,65 @@
+System.out.print("Enter a team's name : ");
+			Scanner scanner = new Scanner(System.in);
+			String teamname = scanner.next();
+			System.out.println("The dates of " + teamname + " team meetings");
+			
+			PreparedStatement st0 = con.prepareStatement("select date_of_the_meeting from meeting where id_team1 = (select id from team where team_name = '" + teamname + "') or id_team2 = (select id from team where team_name = '" + teamname + "');");
+			ResultSet Rs0 = st0.executeQuery();
+
+			while(Rs0.next())
+			{
+				System.out.println(Rs0.getString(1));
+			}
+			st0.close();
+			
+			System.out.println("");
+			System.out.println("Competitors");
+			PreparedStatement st1 = con.prepareStatement("select id_team2 from meeting where id_team1 = (select id from team where team_name = '" + teamname + "')");
+			ResultSet Rs1 = st1.executeQuery();
+			
+			ArrayList<String> id_team2list = new ArrayList<>();
+			while(Rs1.next())
+			{
+				String id_team2var = Rs1.getString("id_team2");
+				id_team2list.add(id_team2var);
+			}
+			st1.close();
+			
+			//Ids of the second team are in the id_team2list
+
+			for(int i = 0; i < id_team2list.size(); i++)
+			{
+				String t = id_team2list.get(i);
+				PreparedStatement st2 = con.prepareStatement("select team_name from team where id = " + t);
+				ResultSet Rs2 = st2.executeQuery();
+				while(Rs2.next())
+				{
+					System.out.println(Rs2.getString(1));
+				}
+				st2.close();
+			}
+			
+			System.out.println("");
+			System.out.println("Score");
+			PreparedStatement st3 = con.prepareStatement("select id from meeting where id_team1 = (select id from team where team_name = '" + teamname + "') or id_team2 = (select id from team where team_name = '" + teamname + "')");
+			ResultSet Rs3 = st3.executeQuery();
+			
+			ArrayList<String> id_meetinglist = new ArrayList<>();
+			
+			while(Rs3.next())
+			{
+				String id_meetingvar = Rs3.getString("id");
+				id_meetinglist.add(id_meetingvar);
+			}
+			for(int i = 0; i < id_meetinglist.size(); i++)
+			{
+				String t = id_meetinglist.get(i);
+				PreparedStatement st4 = con.prepareStatement("select score from game where id_meeting = " + t);
+				ResultSet Rs4 = st4.executeQuery();
+				while(Rs4.next())
+				{
+					System.out.println(Rs4.getString(1));
+				}
+				st4.close();
+			}
+			st3.close();
