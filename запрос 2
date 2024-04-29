@@ -1,0 +1,33 @@
+System.out.print("Entrez la date comme 'January 31, 2023' : ");
+			Scanner scanner = new Scanner(System.in);
+			String dateofthemeeting = scanner.nextLine();
+			System.out.println("The meeting on '" + dateofthemeeting + "' took place on the stadium");
+			
+			PreparedStatement st0 = con.prepareStatement("select stadium_name from stadium where id = (select id_stadium from game where id_meeting = (select id from meeting where date_of_the_meeting = '" + dateofthemeeting + "'))");
+			ResultSet Rs0 = st0.executeQuery();
+			
+			while(Rs0.next())
+			{
+				System.out.println(Rs0.getString(1));
+			}
+			st0.close();
+			
+			System.out.println("");
+			System.out.println("Players' numbers and surnames");
+			PreparedStatement st1 = con.prepareStatement("select num, surname from player where id_team = (select id_team1 from meeting where date_of_the_meeting = 'November 19, 2023');");
+			ResultSet Rs1 = st1.executeQuery();
+
+			while(Rs1.next())
+			{
+				System.out.println(Rs1.getString(1)+ " " +Rs1.getString(2));
+			}
+
+			PreparedStatement st2 = con.prepareStatement("select num, surname from player where id_team = (select id_team2 from meeting where date_of_the_meeting = 'November 19, 2023');;");
+			ResultSet Rs2 = st2.executeQuery();
+
+			while(Rs2.next())
+			{
+				System.out.println(Rs2.getString(1)+ " " +Rs2.getString(2));
+			}
+			st1.close();
+			st2.close();
