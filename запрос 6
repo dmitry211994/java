@@ -1,0 +1,78 @@
+System.out.print("Enter staium's name ");
+			Scanner scanner = new Scanner(System.in);
+			String stadiumname = scanner.next();
+			System.out.println("Date and time of the meetings for the stadium '" + stadiumname + "'");
+			
+			PreparedStatement st0 = con.prepareStatement("select id_meeting from game where id_stadium = (select id from stadium where stadium_name = '" + stadiumname + "');");
+			ResultSet Rs0 = st0.executeQuery();
+			ArrayList<Integer> id_meetinglist = new ArrayList<>();
+			while(Rs0.next())
+			{
+				int id_meetingvar = Rs0.getInt("id_meeting");
+				id_meetinglist.add(id_meetingvar);
+			}
+			st0.close();
+			
+			for(int i = 0; i < id_meetinglist.size(); i++)
+			{
+				String t = String.valueOf(id_meetinglist.get(i));
+				PreparedStatement st1 = con.prepareStatement("select date_of_the_meeting, time_of_the_meeting from meeting where id = " + t);
+				ResultSet Rs1 = st1.executeQuery();
+				while(Rs1.next())
+				{
+				System.out.println(Rs1.getString(1) + " " + Rs1.getString(2));
+				}
+				st1.close();
+			}
+			
+			System.out.println("");
+			System.out.println("Teams that played in these meetings");
+			ArrayList<Integer> id_team1list = new ArrayList<>();
+			ArrayList<Integer> id_team2list = new ArrayList<>();
+			
+			for(int i = 0; i < id_meetinglist.size(); i++)
+			{
+				String t = String.valueOf(id_meetinglist.get(i));
+				PreparedStatement st3 = con.prepareStatement("select id_team1 from meeting where id = " + t);
+				ResultSet Rs3 = st3.executeQuery();
+				while(Rs3.next())
+				{
+					int id_team1var = Rs3.getInt("id_team1");
+					id_team1list.add(id_team1var);
+				}
+				st3.close();
+				
+				PreparedStatement st4 = con.prepareStatement("select id_team2 from meeting where id = " + t);
+				ResultSet Rs4 = st4.executeQuery();
+				while(Rs4.next())
+				{
+					int id_team2var = Rs4.getInt("id_team2");
+					id_team2list.add(id_team2var);
+				}
+				st4.close();
+			}
+			//for(int l = 0; l < id_team2list.size(); l++)
+				//System.out.println(id_team2list.get(l));
+			
+			for(int i = 0; i < id_team1list.size(); i++)
+			{
+				String team1listvar = String.valueOf(id_team1list.get(i));
+				PreparedStatement st5 = con.prepareStatement("select team_name from team where id = " + team1listvar);
+				ResultSet Rs5 = st5.executeQuery();
+				
+				String team2listvar = String.valueOf(id_team2list.get(i));
+				PreparedStatement st6 = con.prepareStatement("select team_name from team where id = " + team2listvar);
+				ResultSet Rs6 = st6.executeQuery();
+				
+				while(Rs5.next())
+				{
+				System.out.print(Rs5.getString(1) + "   ");
+				}
+				
+				while(Rs6.next())
+				{
+				System.out.println(Rs6.getString(1));
+				}
+				st5.close();
+				st6.close();
+			}
