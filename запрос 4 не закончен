@@ -1,0 +1,66 @@
+ArrayList<String> teamsnames = new ArrayList<>();
+			teamsnames.add("Jackal"); teamsnames.add("Meerkat"); teamsnames.add("Ostrich"); teamsnames.add("Wildebeest");
+			ArrayList<Integer> idmeetinglist = new ArrayList<>();
+			ArrayList<String> scorelist = new ArrayList<>();
+			
+			for(int i = 0; i < teamsnames.size(); i++)
+			{
+				PreparedStatement st0 = con.prepareStatement("select id from meeting where id_team1 = (select id from team where team_name = '" + teamsnames.get(i) + "');");
+				ResultSet Rs0 = st0.executeQuery();
+				
+				PreparedStatement st1 = con.prepareStatement("select id from meeting where id_team2 = (select id from team where team_name = '" + teamsnames.get(i) + "');");
+				ResultSet Rs1 = st1.executeQuery();
+				
+				while(Rs0.next())
+					idmeetinglist.add(Rs0.getInt(1));
+				
+				while(Rs1.next())
+					idmeetinglist.add(Rs1.getInt(1));
+				
+				st0.close(); st1.close();
+			}
+			
+			for (int q = 0; q < idmeetinglist.size(); q++)
+			{
+				PreparedStatement st2 = con.prepareStatement("select score from game where id_meeting = " + idmeetinglist.get(q) + ";");
+				ResultSet Rs2 = st2.executeQuery();
+				while(Rs2.next())
+					scorelist.add(Rs2.getString(1));
+			}
+			// Read scorelist as: first 4 are the 1st team, second 4 are the 2d team etc.
+			ArrayList<Integer> score1list = new ArrayList<>();
+			ArrayList<Integer> score2list = new ArrayList<>();
+			ArrayList<Integer> score3list = new ArrayList<>();
+			ArrayList<Integer> score4list = new ArrayList<>();
+			
+			for(int m =0; m < scorelist.size(); m++)
+			{
+				if ( m>=0 && m < 4 && scorelist.get(m) != null)
+				{
+					String[] parts = scorelist.get(m).split(":");
+					int score1var = Integer.parseInt(parts[0]);
+					if(score1var>=0 && score1var<4)
+						score1list.add(score1var);
+				}
+				if ( m>=4 && m < 8 && scorelist.get(m) != null)
+				{
+					String[] parts = scorelist.get(m).split(":");
+					int score2var = Integer.parseInt(parts[0]);
+					if(score2var>=0 && score2var<4)
+						score2list.add(score2var);
+				}
+				if ( m>=8 && m < 12 && scorelist.get(m) != null)
+				{
+					String[] parts = scorelist.get(m).split(":");
+					int score3var = Integer.parseInt(parts[0]);
+					if(score3var>=0 && score3var<4)
+						score3list.add(score3var);
+				}
+				if ( m>=12 && m < 16 && scorelist.get(m) != null)
+				{
+					String[] parts = scorelist.get(m).split(":");
+					int score4var = Integer.parseInt(parts[0]);
+					if(score4var>=0 && score4var<4)
+						score4list.add(score4var);
+				}
+			}
