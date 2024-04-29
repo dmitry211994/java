@@ -1,0 +1,56 @@
+int standardprice = 2000;
+			double coefficient;
+			double price;
+			int lastgameposition;
+			
+			System.out.println("Enter first team's name and then second's ");
+			Scanner scanner = new Scanner(System.in);
+			String teamname1 = "Ostrich" ;//scanner.next();
+			String teamname2 = "Jackal" ;//scanner.next();
+			String stadiumname = "Arena" ;//scanner.next();
+			
+			System.out.println("A ticket on a match betwwen " + teamname1 + " and " + teamname2 + " at the stadium " + stadiumname + " will cost");
+			
+			PreparedStatement st0 = con.prepareStatement("select last_game_position from team where team_name = '" + teamname1 + "';");
+			ResultSet Rs0 = st0.executeQuery();
+			
+			ArrayList<Integer> lastgamepositionlist = new ArrayList<>();
+			while(Rs0.next())
+			{
+				lastgamepositionlist.add(Rs0.getInt(1));
+			}
+			st0.close();
+			
+			PreparedStatement st1 = con.prepareStatement("select last_game_position from team where team_name = '" + teamname2 + "';");
+			ResultSet Rs1 = st1.executeQuery();
+			
+			while(Rs1.next())
+			{
+				lastgamepositionlist.add(Rs1.getInt(1));
+			}
+			st1.close();
+			
+			if(lastgamepositionlist.get(0) < lastgamepositionlist.get(1))
+				lastgameposition = lastgamepositionlist.get(0);
+			else
+				lastgameposition = lastgamepositionlist.get(1);
+			
+			if(lastgameposition == 1 || lastgameposition == 2 || lastgameposition == 3)
+				coefficient = 2;
+			else if (lastgameposition == 4 || lastgameposition == 5 || lastgameposition == 6)
+				coefficient = 1;
+			else
+				coefficient = 0.5;
+			
+			PreparedStatement st2 = con.prepareStatement("select capacity from stadium where stadium_name = '" + stadiumname + "';");
+			ResultSet Rs2 = st2.executeQuery();
+			
+			ArrayList<Integer> capacitylist = new ArrayList<>();
+			while(Rs2.next())
+			{
+				capacitylist.add(Rs2.getInt(1));
+			}
+			st2.close();
+			
+			price = coefficient * standardprice * capacitylist.get(0) / 1000;
+			System.out.println(price);
