@@ -1,0 +1,9 @@
+System.out.println("Winner teams are");
+			PreparedStatement st0 = con.prepareStatement("select team_name from team where last_game_position = 1 or last_game_position = 2 or last_game_position = 3;");
+			ResultSet Rs0 = st0.executeQuery();
+
+			while(Rs0.next())
+			{
+			System.out.println(Rs0.getString(1));
+			}
+			st0.close();
