@@ -1,0 +1,338 @@
+package database_lab3;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
+
+
+public class Class_database_lab3 {
+
+	public static int table_size(String table_name)
+	{
+		String url = "jdbc:postgresql://localhost:5432/dekanat";
+		String user = "postgres";
+		String passwd = "5678";
+		try {
+		Class.forName("org.postgresql.Driver");
+		Connection con = DriverManager.getConnection(url,user,passwd);
+        int size = 0;
+        PreparedStatement st0 = con.prepareStatement("select count(*) from "+table_name+";");
+		ResultSet Rs0 = st0.executeQuery();
+		while(Rs0.next())
+		{
+			size = Rs0.getInt(1);
+		}
+		st0.close();
+		con.close();
+		return size;}
+		catch(Exception ex){return 0;}
+    }
+	public static void main(String[] args) {
+		String url = "jdbc:postgresql://localhost:5432/dekanat";
+		String user = "postgres";
+		String passwd = "5678";
+		try {
+			Class.forName("org.postgresql.Driver");
+			Connection con = DriverManager.getConnection(url,user,passwd);
+			
+			Scanner scanner = new Scanner(System.in);
+			System.out.println("Запросы и действия\n"
+					+ "1 Первый запрос. Средний балл по каждому предмету \n"
+					+ "2 Второй запрос. Группа с максимальным средним баллом по заданному предмету.\n"
+					+ "3 Третий запрос. Список по факультетам студентов, подлежащих отчислению (не сдано более двух предметов)\n"
+					+ "4 Четвёртый запрос. По какому предмету больше всего неудовлетворительных оценок\n"
+					+ "5 Сведения о струдентах из списка сведений о студентах\n"
+					+ "6 Сведения о группах из списка сведений о группах\n"
+					+ "7 Сведения о предметах из списка сведений о предметах\n"
+					+ "8 Добавить студента\n"
+					+ "9 Отчислить студента");
+			int user_asks_for = Integer.valueOf(scanner.nextLine());
+			if(user_asks_for == 1)
+			{
+				System.out.print("Первый запрос. Средний балл по каждому предмету \n");
+				
+				PreparedStatement st0 = con.prepareStatement("select distinct name_subject from Subject;");
+				ResultSet Rs0 = st0.executeQuery();
+
+				ArrayList<String> subject_names_list = new ArrayList<String>();
+				
+				while(Rs0.next())
+				{
+					subject_names_list.add(Rs0.getString(1));
+				}
+				st0.close();
+				
+				for (int subject = 0; subject < subject_names_list.size(); subject++){
+					PreparedStatement st1 = con.prepareStatement("select avg(mark) as average_mark from Academic_Performance"
+							+ " where subject_id = (select distinct unique_id_subject from Subject"
+							+ " where name_subject = '" + subject_names_list.get(subject) + "');");
+					ResultSet Rs1 = st1.executeQuery();
+					while(Rs1.next())
+					{
+						System.out.println("предмет " + subject_names_list.get(subject) + "его средний бал - ");
+						String average_mark = Rs1.getString(1);
+						System.out.printf(average_mark.substring(0, 4) + "\n");
+					}
+					st1.close();
+				}
+			}
+			else if (user_asks_for == 2)
+			{
+				System.out.print("\nВторой запрос. Группа с максимальным средним баллом по заданному предмету.\n");
+				System.out.print("Выберите предмет: ");
+				String picked_subject = scanner.nextLine();
+				int subject_id = 0;
+				PreparedStatement st2 = con.prepareStatement("select distinct unique_id_subject from Subject where name_subject = '" + picked_subject + "';" );
+				ResultSet Rs2 = st2.executeQuery();
+				while(Rs2.next())
+				{
+					subject_id = Rs2.getInt(1);
+				}
+				st2.close();
+				
+				ArrayList<Integer> groupp_id_list = new ArrayList<Integer>();
+				PreparedStatement st3 = con.prepareStatement("select id_groupp from Groupp;");
+				ResultSet Rs3 = st3.executeQuery();
+				while(Rs3.next())
+				{
+					groupp_id_list.add(Rs3.getInt(1));
+				}
+				st3.close();
+
+				ArrayList<Double> average_mark_list = new ArrayList<Double>();
+				for (int f=0; f< groupp_id_list.size();f++)
+				{
+					PreparedStatement st4 = con.prepareStatement("select avg(mark) as average_mark from Academic_Performance "
+							+ "where groupp_id = " + groupp_id_list.get(f) + " and subject_id = " + subject_id + ";");
+					ResultSet Rs4 = st4.executeQuery();
+					while(Rs4.next())
+					{
+						average_mark_list.add(Rs4.getDouble(1));
+					}
+					st4.close();
+				}
+				double max_mark = average_mark_list.get(0);
+				int mark_mark_groupp_id = groupp_id_list.get(0);
+				for (int f=0; f< average_mark_list.size();f++)
+				{
+					double mark = average_mark_list.get(f);
+					if (mark >= max_mark)
+					{
+						max_mark = mark;
+						mark_mark_groupp_id = groupp_id_list.get(f);
+					}
+				}
+				String group = "";
+				PreparedStatement st5 = con.prepareStatement("select groupp_name from Groupp where id_groupp = " + mark_mark_groupp_id + ";");
+				ResultSet Rs5 = st5.executeQuery();
+				while(Rs5.next())
+				{
+					group = Rs5.getString(1);
+				}
+				st5.close();
+		        System.out.print("максимальная средняя оценка "+max_mark+" у группы "+group);
+		        System.out.println(max_mark);
+			}
+			
+			else if (user_asks_for == 3)
+			{
+				System.out.println("\nТретий запрос. Список по факультетам студентов, подлежащих отчислению (не сдано более двух предметов)");
+				ArrayList<String> faculty_names_list = new ArrayList<String>();
+				PreparedStatement st6 = con.prepareStatement("select * from Faculty;");
+				ResultSet Rs6 = st6.executeQuery();
+				while(Rs6.next())
+				{
+					faculty_names_list.add(Rs6.getString(1));
+				}
+				st6.close();
+				
+				ArrayList<Integer> student_id_with_2s_list = new ArrayList<Integer>();
+				PreparedStatement st7 = con.prepareStatement("select student_id from Academic_performance where mark = 2;");
+				ResultSet Rs7 = st7.executeQuery();
+				while(Rs7.next())
+				{
+					student_id_with_2s_list.add(Rs7.getInt(1));
+				}
+				st7.close();
+				//поиск студентов подлежащих отчислению
+				Set<Integer> set = new HashSet<>();
+				List<Object> students_to_be_expelled_list = new ArrayList<>();
+				student_id_with_2s_list.forEach(n -> {
+				  if (!set.add(n)) {
+					  students_to_be_expelled_list.add(n);
+				  }
+				});
+				for(int d=0;d<students_to_be_expelled_list.size();d++)
+				{
+					PreparedStatement st8 = con.prepareStatement("select fio from Student where id_student = "+students_to_be_expelled_list.get(d)+";");
+					ResultSet Rs8 = st8.executeQuery();
+					while(Rs8.next())
+					{
+						System.out.println("Студент "+Rs8.getString(1)+" подлежит отчислению");
+					}
+					st8.close();
+				}
+			}
+			
+			else if (user_asks_for == 4)
+			{
+				System.out.println("\nЧетвёртый запрос. По какому предмету больше всего неудовлетворительных оценок");
+				int subject_id4=0;
+				String subject = "";
+				PreparedStatement st8 = con.prepareStatement("select subject_id from Academic_Performance"
+		+" where mark = 2 group by subject_id order by count(*) desc limit 1;");
+				ResultSet Rs8 = st8.executeQuery();
+				while(Rs8.next())
+				{
+					subject_id4=Rs8.getInt(1);
+				}
+				
+				PreparedStatement st9 = con.prepareStatement("select name_subject from Subject where id_subject = "+subject_id4+";");
+				ResultSet Rs9 = st9.executeQuery();
+				while(Rs9.next())
+				{
+					subject = Rs9.getString(1);
+					System.out.println(subject);
+				}
+				st9.close();
+			}
+			
+			else if (user_asks_for == 5)
+			{
+				System.out.println("\nСведения о струдентах из списка сведений о студентах");
+				ArrayList<String> students_list = new ArrayList<String>();
+				int student_size= table_size("Student");
+				for(int i=0;i<student_size;i++)
+				{
+					PreparedStatement st10 = con.prepareStatement("select * from Student where id_student ="+i+";");
+					ResultSet Rs10 = st10.executeQuery();
+					while(Rs10.next())
+					{
+						for(int j =2; j<7;j++)
+						{
+							students_list.add(Rs10.getString(j));
+						}
+					}
+					st10.close();
+				}
+				for(int j =0; j<students_list.size();j++)
+				{
+					System.out.println(students_list.get(j));
+				}
+			}
+			
+			else if (user_asks_for == 6)
+			{
+				System.out.println("\nСведения о группах из списка сведений о группах");
+				ArrayList<String> groupp_list = new ArrayList<String>();
+				for(int i=29;i<56;i++)
+				{
+					PreparedStatement st11 = con.prepareStatement("select * from Groupp where id_groupp ="+i+";");
+					ResultSet Rs11 = st11.executeQuery();
+					while(Rs11.next())
+					{
+						for(int j =2; j<6;j++)
+						{
+							groupp_list.add(Rs11.getString(j));
+						}
+					}
+					st11.close();
+				}
+				for(int j =0; j<groupp_list.size();j++)
+				{
+					System.out.println(groupp_list.get(j));
+				}
+			}
+			
+			else if (user_asks_for == 7)
+			{
+				System.out.println("\nСведения о предметах из списка сведений о предметах");
+				ArrayList<String> subject_list = new ArrayList<String>();
+				int subject_size = table_size("Subject");
+				for(int i=0;i<subject_size;i++)
+				{
+					PreparedStatement st12 = con.prepareStatement("select * from Subject where id_subject ="+i+";");
+					ResultSet Rs12 = st12.executeQuery();
+					while(Rs12.next())
+					{
+						for(int j =3; j<7;j++)
+						{
+							subject_list.add(Rs12.getString(j));
+						}
+					}
+					st12.close();
+				}
+				for(int j =0; j<subject_list.size();j++)
+				{
+					System.out.println(subject_list.get(j));
+				}
+			}
+			
+			else if (user_asks_for == 8)
+			{
+				System.out.println("В какую группу ?");
+				String group_name = scanner.nextLine();
+				int id_groupp=0;
+				PreparedStatement st13 = con.prepareStatement("select id_groupp from Groupp where groupp_name ='"+group_name+"';");
+				ResultSet Rs13 = st13.executeQuery();
+				while(Rs13.next())
+				{
+					id_groupp = Rs13.getInt(1);
+				}
+				st13.close();
+				System.out.println("Ведите фио, номер зачётной книжки, адрес проживания, размер стипендии студента");
+				String fio = scanner.nextLine();
+				String zach = scanner.nextLine();
+				String adress = scanner.nextLine();
+				int stip = Integer.valueOf(scanner.nextLine());
+				String sql = "insert into Student (fio, grade_book_number, adress, scholarship, groupp_id) values(?, ?, ?, ?, ?)";
+	            PreparedStatement st14 = con.prepareStatement(sql);
+	            st14.setString(1, fio);
+	            st14.setString(2, zach);
+	            st14.setString(3, adress);
+	            st14.setInt(4, stip);
+	            st14.setInt(5, id_groupp);
+	            st14.executeUpdate();
+				
+				int affectedRows = st14.executeUpdate();
+				   if (affectedRows > 0) {
+				       System.out.println("Студент успешно добавлен");
+				   } else {
+				       System.out.println("Студент не добавлен");
+				   }
+				st14.close();
+			}
+			
+			else if (user_asks_for == 9)
+			{
+				System.out.println("Введите номер зачётной книжки студента");
+				String grade_book = scanner.nextLine();
+				PreparedStatement st15 = con.prepareStatement("delete from Student where grade_book_number = ?;");
+				st15.setString(1, grade_book);
+				int affectedRows = st15.executeUpdate();
+				if (affectedRows > 0) {
+				       System.out.println("Студент успешно отчислен");
+				   } else {
+				       System.out.println("Студент не найден");
+				   }
+				st15.close();
+			}
+			
+			scanner.close();
+			con.close();
+		}
+		catch (Exception ex) {
+			System.out.println("не работает");
+			System.out.println(ex.getMessage());
+		}
+	}
+}
